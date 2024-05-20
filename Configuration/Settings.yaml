@@ -1,0 +1,8 @@
+NEOSidekick:
+  UiReverseSearch:
+    # The FrontendNodeRoutePartHandler has an option called "uriPathSuffix"
+    # In some Neos installation this is set to ".html"
+    # If you use an uriPathSuffix, and it is not correctly defined in
+    # configuration "Neos.Flow.mvc.routes.Neos.Neos.variables.defaultUriSuffix"
+    # then set the correct value here.
+    overrideNodeUriPathSuffix: null

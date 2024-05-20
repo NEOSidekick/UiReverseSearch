@@ -6,6 +6,7 @@ use GuzzleHttp\Psr7\Uri;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\ContentRepository\Domain\Utility\NodePaths;
 use Neos\Eel\FlowQuery\FlowQuery;
+use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
 use Neos\Neos\Routing\FrontendNodeRoutePartHandler;
 
@@ -19,6 +20,18 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
      * @var int
      */
     protected static $priority = 200;
+
+    /**
+     * @Flow\InjectConfiguration(package="Neos.Flow", path="mvc[routes][Neos.Neos][variables][defaultUriSuffix]")
+     * @var string|null
+     */
+    protected ?string $defaultNodeUriPathSuffix;
+
+    /**
+     * @Flow\InjectConfiguration(path="overrideNodeUriPathSuffix")
+     * @var string|null
+     */
+    protected ?string $overrideNodeUriPathSuffix;
 
     /**
      * This method is inspired from and extends its original implementation
@@ -52,9 +65,13 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
 
         $routeHandler = new FrontendNodeRoutePartHandler();
         $routeHandler->setName('node');
+
+        $uriPathSuffix = !empty($this->overrideNodeUriPathSuffix) ? $this->overrideNodeUriPathSuffix : $this->defaultNodeUriPathSuffix;
+        $routeHandler->setOptions(['uriPathSuffix' => $uriPathSuffix]);
+
         $routeParameters = RouteParameters::createEmpty();
         // This is needed for the FrontendNodeRoutePartHandler to correctly identify the current site
-        $routeParameters->withParameter('requestUriHost', $uri->getHost());
+        $routeParameters = $routeParameters->withParameter('requestUriHost', $uri->getHost());
         $matchResult = $routeHandler->matchWithParameters($path, $routeParameters);
 
         if (!$matchResult || !$matchResult->getMatchedValue()) {
