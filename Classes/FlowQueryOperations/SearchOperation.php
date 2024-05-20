@@ -48,7 +48,6 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
     {
         $term = $arguments[0] ?? null;
         $filterNodeTypeName = $arguments[1] ?? null;
-        $filterNodeTypes = strlen($filterNodeTypeName) > 0 ? [$filterNodeTypeName] : array_keys($this->nodeTypeManager->getSubNodeTypes('Neos.Neos:Document', false));
 
         /** @var NodeInterface $contextNode */
         $contextNode = $flowQuery->getContext()[0];
@@ -67,7 +66,7 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
         $routeHandler->setName('node');
 
         $uriPathSuffix = !empty($this->overrideNodeUriPathSuffix) ? $this->overrideNodeUriPathSuffix : $this->defaultNodeUriPathSuffix;
-        $routeHandler->setOptions(['uriPathSuffix' => $uriPathSuffix]);
+        $routeHandler->setOptions(['uriPathSuffix' => $uriPathSuffix, 'nodeType' => $filterNodeTypeName]);
 
         $routeParameters = RouteParameters::createEmpty();
         // This is needed for the FrontendNodeRoutePartHandler to correctly identify the current site
@@ -84,15 +83,6 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
         $matchingNode = $context->getNode($nodePath);
 
         if (!$matchingNode) {
-            $flowQuery->setContext([]);
-            return;
-        }
-
-        $matchingNodeIsOfNodeType = array_reduce($filterNodeTypes, function (bool $carry, string $nodeType) use ($matchingNode) {
-            return $carry || $matchingNode->getNodeType()->isOfType($nodeType);
-        }, false);
-
-        if (!$matchingNodeIsOfNodeType) {
             $flowQuery->setContext([]);
             return;
         }
