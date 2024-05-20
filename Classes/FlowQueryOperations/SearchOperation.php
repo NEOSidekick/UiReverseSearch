@@ -9,6 +9,7 @@ use Neos\Eel\FlowQuery\FlowQuery;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
 use Neos\Neos\Routing\FrontendNodeRoutePartHandler;
+use Neos\Utility\Arrays;
 
 class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
 {
@@ -22,10 +23,10 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
     protected static $priority = 200;
 
     /**
-     * @Flow\InjectConfiguration(package="Neos.Flow", path="mvc[routes][Neos.Neos][variables][defaultUriSuffix]")
-     * @var string|null
+     * @Flow\InjectConfiguration(package="Neos.Flow", path="mvc.routes")
+     * @var array
      */
-    protected ?string $defaultNodeUriPathSuffix;
+    protected array $routesConfiguration;
 
     /**
      * @Flow\InjectConfiguration(path="overrideNodeUriPathSuffix")
@@ -65,7 +66,7 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
         $routeHandler = new FrontendNodeRoutePartHandler();
         $routeHandler->setName('node');
 
-        $uriPathSuffix = !empty($this->overrideNodeUriPathSuffix) ? $this->overrideNodeUriPathSuffix : $this->defaultNodeUriPathSuffix;
+        $uriPathSuffix = !empty($this->overrideNodeUriPathSuffix) ? $this->overrideNodeUriPathSuffix : $this->routesConfiguration['Neos.Neos']['variables']['defaultUriSuffix'];
         $routeHandler->setOptions(['uriPathSuffix' => $uriPathSuffix, 'nodeType' => $filterNodeTypeName]);
 
         $routeParameters = RouteParameters::createEmpty();
