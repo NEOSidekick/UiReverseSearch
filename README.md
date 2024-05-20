@@ -1,6 +1,10 @@
 # Neos UI Document Reverse Search by URI
 
 This package extends the document tree search in the Neos UI with an ability to search by the public URI of a document.
+Just copy the public URI from your browser into the search field and the document will be highlighted in the document tree.
+
+![Demo](https://github.com/NEOSidekick/UiReverseSearch/assets/4405087/6127e7c2-e363-4185-bffa-1f8d9c7c6f80)
+
 
 # How does it work?
 
