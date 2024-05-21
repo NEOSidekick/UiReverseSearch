@@ -10,7 +10,7 @@
         "chat" : "https://neos-project.slack.com/team/U37QD9CDA"
     },
     "require": {
-        "neos/neos": "^7.0 || ^8.0"
+        "neos/neos-ui": "^7.0 || ^8.0"
     },
     "autoload": {
         "psr-4": {
