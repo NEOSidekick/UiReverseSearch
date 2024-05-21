@@ -4,12 +4,12 @@ namespace NEOSidekick\UiReverseSearch\FlowQueryOperations;
 
 use GuzzleHttp\Psr7\Uri;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
+use Neos\ContentRepository\Domain\Service\Context;
 use Neos\ContentRepository\Domain\Utility\NodePaths;
 use Neos\Eel\FlowQuery\FlowQuery;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
 use Neos\Neos\Routing\FrontendNodeRoutePartHandler;
-use Neos\Utility\Arrays;
 
 class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
 {
@@ -54,9 +54,26 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
         $contextNode = $flowQuery->getContext()[0];
         $context = $contextNode->getContext();
 
-        if (!preg_match('/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/', $term)) {
-            parent::evaluate($flowQuery, $arguments);
+        $matchingNodeFromPublicUri = $this->tryToResolvePublicUriToNode($term, $filterNodeTypeName, $context);
+        if ($matchingNodeFromPublicUri) {
+            $flowQuery->setContext([$matchingNodeFromPublicUri]);
             return;
+        }
+
+        $matchingNodeFromNodePath = $this->tryToResolveNodePathToNode($term, $filterNodeTypeName, $context);
+        if ($matchingNodeFromNodePath) {
+            $flowQuery->setContext([$matchingNodeFromNodePath]);
+            return;
+        }
+
+        // If nothing can be found, fall back to the original implementation
+        parent::evaluate($flowQuery, $arguments);
+    }
+
+    protected function tryToResolvePublicUriToNode(mixed $term, mixed $filterNodeTypeName, Context $context): ?NodeInterface
+    {
+        if (!preg_match('/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/', $term)) {
+            return null;
         }
 
         $uri = new Uri($term);
@@ -75,8 +92,7 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
         $matchResult = $routeHandler->matchWithParameters($path, $routeParameters);
 
         if (!$matchResult || !$matchResult->getMatchedValue()) {
-            $flowQuery->setContext([]);
-            return;
+            return null;
         }
 
         $nodeContextPath = $matchResult->getMatchedValue();
@@ -84,10 +100,29 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
         $matchingNode = $context->getNode($nodePath);
 
         if (!$matchingNode) {
-            $flowQuery->setContext([]);
-            return;
+            return null;
         }
 
-        $flowQuery->setContext([$matchingNode]);
+        return $matchingNode;
+    }
+
+    protected function tryToResolveNodePathToNode(string $term, string $filterNodeTypeName, Context $context): ?NodeInterface
+    {
+        if (!str_starts_with($term, '/sites')) {
+            return null;
+        }
+
+        // We only need the node path, so we split the context path from the search term
+        $nodePath = explode('@', $term)[0];
+        if (!preg_match(NodeInterface::MATCH_PATTERN_CONTEXTPATH, $nodePath)) {
+            return null;
+        }
+
+        $matchingNode = $context->getNode($nodePath);
+        if (!$matchingNode || !$matchingNode->getNodeType()->isOfType($filterNodeTypeName)) {
+            return null;
+        }
+
+        return $matchingNode;
     }
 }
