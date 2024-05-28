@@ -9,7 +9,8 @@ use Neos\ContentRepository\Domain\Utility\NodePaths;
 use Neos\Eel\FlowQuery\FlowQuery;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
-use Neos\Neos\Routing\FrontendNodeRoutePartHandler;
+use Neos\Flow\ObjectManagement\ObjectManagerInterface;
+use Neos\Neos\Routing\FrontendNodeRoutePartHandlerInterface;
 
 class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
 {
@@ -33,6 +34,12 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
      * @var string|null
      */
     protected ?string $overrideNodeUriPathSuffix;
+
+    /**
+     * @Flow\Inject
+     * @var ObjectManagerInterface
+     */
+    protected $objectManager;
 
     /**
      * This method is inspired from and extends its original implementation
@@ -80,7 +87,7 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
         // Remove the starting slash.
         $path = str_starts_with($uri->getPath(), '/') ? substr($uri->getPath(), 1) : $uri->getPath();
 
-        $routeHandler = new FrontendNodeRoutePartHandler();
+        $routeHandler = $this->objectManager->get(FrontendNodeRoutePartHandlerInterface::class);
         $routeHandler->setName('node');
 
         $uriPathSuffix = !empty($this->overrideNodeUriPathSuffix) ? $this->overrideNodeUriPathSuffix : $this->routesConfiguration['Neos.Neos']['variables']['defaultUriSuffix'];
