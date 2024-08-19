@@ -77,7 +77,7 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
         parent::evaluate($flowQuery, $arguments);
     }
 
-    protected function tryToResolvePublicUriToNode(mixed $term, mixed $filterNodeTypeName, Context $context): ?NodeInterface
+    protected function tryToResolvePublicUriToNode(mixed $term, ?string $filterNodeTypeName, Context $context): ?NodeInterface
     {
         if (!preg_match('/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/', $term)) {
             return null;
@@ -113,7 +113,7 @@ class SearchOperation extends \Neos\Neos\Ui\FlowQueryOperations\SearchOperation
         return $matchingNode;
     }
 
-    protected function tryToResolveNodePathToNode(string $term, string $filterNodeTypeName, Context $context): ?NodeInterface
+    protected function tryToResolveNodePathToNode(string $term, ?string $filterNodeTypeName, Context $context): ?NodeInterface
     {
         if (!str_starts_with($term, '/sites')) {
             return null;
